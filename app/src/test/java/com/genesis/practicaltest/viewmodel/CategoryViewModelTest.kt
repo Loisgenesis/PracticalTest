@@ -5,6 +5,7 @@ import androidx.lifecycle.Observer
 import com.genesis.practicaltest.api.ApiService
 import com.genesis.practicaltest.model.CategoriesResponse
 import com.genesis.practicaltest.model.Category
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -28,7 +29,7 @@ class CategoryViewModelTest {
     var rule: TestRule = InstantTaskExecutorRule()
 
     @Mock
-    private lateinit var apiService: ApiService
+    private  var apiService: ApiService = mockk()
 
     private lateinit var viewModel: CategoryViewModel
 
@@ -47,10 +48,9 @@ class CategoryViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = CategoryViewModel()
-       // apiService = ApiService.create()
-        viewModel.categories.observeForever(categoriesObserver)
+        viewModel = CategoryViewModel(apiService)
         viewModel.loading.observeForever(loadingObserver)
+        viewModel.categories.observeForever(categoriesObserver)
         viewModel.error.observeForever(errorObserver)
 
     }
@@ -58,8 +58,8 @@ class CategoryViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        viewModel.categories.removeObserver(categoriesObserver)
         viewModel.loading.removeObserver(loadingObserver)
+        viewModel.categories.removeObserver(categoriesObserver)
         viewModel.error.removeObserver(errorObserver)
     }
 
@@ -68,7 +68,12 @@ class CategoryViewModelTest {
     @Test
     fun fetchCategories_success() = runTest {
         val mockCategories = listOf(
-            Category("1", "Beef", "https://www.themealdb.com/images/category/beef.png", "Beef description")
+            Category(
+                "1",
+                "Beef",
+                "https://www.themealdb.com/images/category/beef.png",
+                "Beef description"
+            )
         )
         val mockResponse = CategoriesResponse(mockCategories)
 
@@ -76,13 +81,15 @@ class CategoryViewModelTest {
 
         viewModel.fetchCategories()
 
+
         advanceUntilIdle()
 
         // Verifying observer interactions
         val inOrder = inOrder(loadingObserver, categoriesObserver, errorObserver)
+
         inOrder.verify(loadingObserver).onChanged(true) // Loading started
-        inOrder.verify(categoriesObserver).onChanged(mockCategories) // Data loaded
         inOrder.verify(loadingObserver).onChanged(false) // Loading ended
+        inOrder.verify(categoriesObserver).onChanged(mockCategories) // Data loaded
         inOrder.verify(errorObserver).onChanged(null) // No error
 
     }
@@ -95,6 +102,7 @@ class CategoryViewModelTest {
         `when`(apiService.getCategories()).thenThrow(RuntimeException(errorMessage))
 
         viewModel.fetchCategories()
+
 
         advanceUntilIdle()
 

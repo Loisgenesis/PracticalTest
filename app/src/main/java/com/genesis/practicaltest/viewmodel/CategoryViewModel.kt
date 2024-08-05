@@ -9,7 +9,7 @@ import com.genesis.practicaltest.model.Category
 import com.genesis.practicaltest.api.ApiService
 import kotlinx.coroutines.launch
 
-class CategoryViewModel : ViewModel() {
+class CategoryViewModel(private  val apiService: ApiService= ApiService.create()) : ViewModel() {
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> get() = _categories
 
@@ -19,7 +19,6 @@ class CategoryViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: MutableLiveData<String?> get() = _error
 
-    private val apiService = ApiService.create()
 
     init {
         fetchCategories()
@@ -39,6 +38,7 @@ class CategoryViewModel : ViewModel() {
                 }
 
             } catch (e: Exception) {
+                println("Error from api is $e")
                 _error.value = "Error occurred: ${e.message}"
                 _loading.value = false
             }
