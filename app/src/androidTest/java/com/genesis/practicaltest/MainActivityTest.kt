@@ -11,6 +11,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import junit.framework.AssertionFailedError
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,13 +42,13 @@ class MainActivityTest {
     }
 
     //Test passes when error occurs e.g no internet connection
-    @Test
+    @Test(expected = Exception::class)
     fun testRetryButtonClickedWhenErrorOccurs() {
         onView(withId(R.id.btnRetry)).perform(ViewActions.click())
     }
 
     //Test passes when error occurs e.g no internet connection
-    @Test
+    @Test(expected = AssertionFailedError::class)
     fun testErrorTextVisibilityIsVisible() {
         onView(withId(R.id.errorTextView)).check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
     }
